@@ -779,8 +779,13 @@ static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
 }
 #endif /* HUGETLB_PAGE */
 
-static void smap_gather_stats(struct vm_area_struct *vma,
-			     struct mem_size_stats *mss)
+void __weak arch_show_smap(struct seq_file *m, struct vm_area_struct *vma)
+{
+}
+
+#define SEQ_PUT_DEC(str, val) \
+		seq_put_decimal_ull_width(m, str, (val) >> 10, 8)
+static int show_smap(struct seq_file *m, void *v, int is_pid)
 {
 	struct mm_walk smaps_walk = {
 		.pmd_entry = smaps_pte_range,
@@ -920,18 +925,42 @@ static int show_smap(struct seq_file *m, void *v)
 		seq_putc(m, '\n');
 	}
 
-	SEQ_PUT_DEC("Size:           ", vma->vm_end - vma->vm_start);
-	SEQ_PUT_DEC(" kB\nKernelPageSize: ", vma_kernel_pagesize(vma));
-	SEQ_PUT_DEC(" kB\nMMUPageSize:    ", vma_mmu_pagesize(vma));
-	seq_puts(m, " kB\n");
+	if (!rollup_mode) {
+		SEQ_PUT_DEC("Size:           ", vma->vm_end - vma->vm_start);
+		SEQ_PUT_DEC(" kB\nKernelPageSize: ", vma_kernel_pagesize(vma));
+		SEQ_PUT_DEC(" kB\nMMUPageSize:    ", vma_mmu_pagesize(vma));
+		seq_puts(m, " kB\n");
+	}
 
-	__show_smap(m, &mss, false);
-
-	if (arch_pkeys_enabled())
-		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
-	show_smap_vma_flags(m, vma);
-
+	if (!rollup_mode || last_vma) {
+		SEQ_PUT_DEC("Rss:            ", mss->resident);
+		SEQ_PUT_DEC(" kB\nPss:            ", mss->pss >> PSS_SHIFT);
+		SEQ_PUT_DEC(" kB\nShared_Clean:   ", mss->shared_clean);
+		SEQ_PUT_DEC(" kB\nShared_Dirty:   ", mss->shared_dirty);
+		SEQ_PUT_DEC(" kB\nPrivate_Clean:  ", mss->private_clean);
+		SEQ_PUT_DEC(" kB\nPrivate_Dirty:  ", mss->private_dirty);
+		SEQ_PUT_DEC(" kB\nReferenced:     ", mss->referenced);
+		SEQ_PUT_DEC(" kB\nAnonymous:      ", mss->anonymous);
+		SEQ_PUT_DEC(" kB\nLazyFree:       ", mss->lazyfree);
+		SEQ_PUT_DEC(" kB\nAnonHugePages:  ", mss->anonymous_thp);
+		SEQ_PUT_DEC(" kB\nShmemPmdMapped: ", mss->shmem_thp);
+		SEQ_PUT_DEC(" kB\nShared_Hugetlb: ", mss->shared_hugetlb);
+		seq_put_decimal_ull_width(m, " kB\nPrivate_Hugetlb: ",
+					  mss->private_hugetlb >> 10, 7);
+		SEQ_PUT_DEC(" kB\nSwap:           ", mss->swap);
+		SEQ_PUT_DEC(" kB\nSwapPss:        ",
+						mss->swap_pss >> PSS_SHIFT);
+		SEQ_PUT_DEC(" kB\nLocked:         ", mss->pss >> PSS_SHIFT);
+		seq_puts(m, " kB\n");
+	}
+	if (!rollup_mode) {
+		arch_show_smap(m, vma);
+		show_smap_vma_flags(m, vma);
+	}
 	m_cache_vma(m, vma);
+	return ret;
+}
+#undef SEQ_PUT_DEC
 
 	return 0;
 }
