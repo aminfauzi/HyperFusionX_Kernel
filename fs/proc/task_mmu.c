@@ -779,9 +779,8 @@ static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
 }
 #endif /* HUGETLB_PAGE */
 
-#define SEQ_PUT_DEC(str, val) \
-		seq_put_decimal_ull_width(m, str, (val) >> 10, 8)
-static int show_smap(struct seq_file *m, void *v)
+static void smap_gather_stats(struct vm_area_struct *vma,
+			     struct mem_size_stats *mss)
 {
 	struct mm_walk smaps_walk = {
 		.pmd_entry = smaps_pte_range,
@@ -826,72 +825,31 @@ static int show_smap(struct seq_file *m, void *v)
 
 #define SEQ_PUT_DEC(str, val) \
 		seq_put_decimal_ull_width(m, str, (val) >> 10, 8)
-
-/* Show the contents common for smaps and smaps_rollup */
-static void __show_smap(struct seq_file *m, const struct mem_size_stats *mss,
-	bool rollup_mode)
-{
-	SEQ_PUT_DEC("Rss:            ", mss->resident);
-	SEQ_PUT_DEC(" kB\nPss:            ", mss->pss >> PSS_SHIFT);
-	if (rollup_mode) {
-		/*
-		 * These are meaningful only for smaps_rollup, otherwise two of
-		 * them are zero, and the other one is the same as Pss.
-		 */
-		SEQ_PUT_DEC(" kB\nPss_Anon:       ",
-			mss->pss_anon >> PSS_SHIFT);
-		SEQ_PUT_DEC(" kB\nPss_File:       ",
-			mss->pss_file >> PSS_SHIFT);
-		SEQ_PUT_DEC(" kB\nPss_Shmem:      ",
-			mss->pss_shmem >> PSS_SHIFT);
-	}
-	SEQ_PUT_DEC(" kB\nShared_Clean:   ", mss->shared_clean);
-	SEQ_PUT_DEC(" kB\nShared_Dirty:   ", mss->shared_dirty);
-	SEQ_PUT_DEC(" kB\nPrivate_Clean:  ", mss->private_clean);
-	SEQ_PUT_DEC(" kB\nPrivate_Dirty:  ", mss->private_dirty);
-	SEQ_PUT_DEC(" kB\nReferenced:     ", mss->referenced);
-	SEQ_PUT_DEC(" kB\nAnonymous:      ", mss->anonymous);
-	SEQ_PUT_DEC(" kB\nLazyFree:       ", mss->lazyfree);
-	SEQ_PUT_DEC(" kB\nAnonHugePages:  ", mss->anonymous_thp);
-	SEQ_PUT_DEC(" kB\nShmemPmdMapped: ", mss->shmem_thp);
-	SEQ_PUT_DEC(" kB\nShared_Hugetlb: ", mss->shared_hugetlb);
-	seq_put_decimal_ull_width(m, " kB\nPrivate_Hugetlb: ",
-				  mss->private_hugetlb >> 10, 7);
-	SEQ_PUT_DEC(" kB\nSwap:           ", mss->swap);
-	SEQ_PUT_DEC(" kB\nSwapPss:        ",
-					mss->swap_pss >> PSS_SHIFT);
-	SEQ_PUT_DEC(" kB\nLocked:         ",
-					mss->pss_locked >> PSS_SHIFT);
-	seq_puts(m, " kB\n");
-}
-
 static int show_smap(struct seq_file *m, void *v)
 {
+	struct proc_maps_private *priv = m->private;
 	struct vm_area_struct *vma = v;
-	struct mem_size_stats mss;
+	struct mem_size_stats mss_stack;
+	struct mem_size_stats *mss;
+	int ret = 0;
+	bool rollup_mode;
+	bool last_vma;
 
-	memset(&mss, 0, sizeof(mss));
-	show_map_vma(m, vma);
-
-#ifdef CONFIG_KSU_SUSFS_SUS_MAP
-	if (vma->vm_file &&
-		unlikely(file_inode(vma->vm_file)->i_mapping->flags & BIT_SUS_MAPS) &&
-		susfs_is_current_proc_umounted())
-	{
-		show_map_vma(m, vma);
-		SEQ_PUT_DEC("Size:           ", vma->vm_end - vma->vm_start);
-		SEQ_PUT_DEC(" kB\nKernelPageSize: ", 4);
-		SEQ_PUT_DEC(" kB\nMMUPageSize:    ", 4);
-		seq_puts(m, " kB\n");
-		__show_smap(m, &mss, false);
-		if (arch_pkeys_enabled())
-				seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
-		seq_puts(m, "VmFlags: mr mw me");
-		seq_putc(m, '\n');
-		goto bypass_orig_flow;
+	if (priv->rollup) {
+		rollup_mode = true;
+		mss = priv->rollup;
+		if (mss->first) {
+			mss->first_vma_start = vma->vm_start;
+			mss->first = false;
+		}
+		last_vma = !m_next_vma(priv, vma);
+	} else {
+		rollup_mode = false;
+		memset(&mss_stack, 0, sizeof(mss_stack));
+		mss = &mss_stack;
 	}
-#endif
-	smap_gather_stats(vma, &mss);
+
+	smap_gather_stats(vma, mss);
 
 #ifdef VENDOR_EDIT //yixue.ge@bsp.drv modify for android.bg get pss too slow
 	if (strcmp(current->comm, "android.bg") == 0) {
