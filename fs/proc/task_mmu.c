@@ -779,13 +779,9 @@ static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
 }
 #endif /* HUGETLB_PAGE */
 
-void __weak arch_show_smap(struct seq_file *m, struct vm_area_struct *vma)
-{
-}
-
 #define SEQ_PUT_DEC(str, val) \
 		seq_put_decimal_ull_width(m, str, (val) >> 10, 8)
-static int show_smap(struct seq_file *m, void *v, int is_pid)
+static int show_smap(struct seq_file *m, void *v)
 {
 	struct mm_walk smaps_walk = {
 		.pmd_entry = smaps_pte_range,
@@ -919,6 +915,17 @@ static int show_smap(struct seq_file *m, void *v)
 	}
 #endif /*VENDOR_EDIT*/
 
+	if (!rollup_mode) {
+		show_map_vma(m, vma);
+	} else if (last_vma) {
+		show_vma_header_prefix(
+			m, mss->first_vma_start, vma->vm_end, 0, 0, 0, 0);
+		seq_pad(m, ' ');
+		seq_puts(m, "[rollup]\n");
+	} else {
+		ret = SEQ_SKIP;
+	}
+
 	if (vma_get_anon_name(vma)) {
 		seq_puts(m, "Name:           ");
 		seq_print_vma_name(m, vma);
@@ -958,57 +965,6 @@ static int show_smap(struct seq_file *m, void *v)
 		show_smap_vma_flags(m, vma);
 	}
 	m_cache_vma(m, vma);
-	return ret;
-}
-#undef SEQ_PUT_DEC
-
-	return 0;
-}
-
-static int show_smaps_rollup(struct seq_file *m, void *v)
-{
-	struct proc_maps_private *priv = m->private;
-	struct mem_size_stats mss;
-	struct mm_struct *mm;
-	struct vm_area_struct *vma;
-	unsigned long last_vma_end = 0;
-	int ret = 0;
-
-	priv->task = get_proc_task(priv->inode);
-	if (!priv->task)
-		return -ESRCH;
-
-	mm = priv->mm;
-	if (!mm || !mmget_not_zero(mm)) {
-		ret = -ESRCH;
-		goto out_put_task;
-	}
-
-	memset(&mss, 0, sizeof(mss));
-
-	down_read(&mm->mmap_sem);
-	hold_task_mempolicy(priv);
-
-	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
-		smap_gather_stats(vma, &mss);
-		last_vma_end = vma->vm_end;
-	}
-
-	show_vma_header_prefix(m, priv->mm->mmap->vm_start,
-			       last_vma_end, 0, 0, 0, 0);
-	seq_pad(m, ' ');
-	seq_puts(m, "[rollup]\n");
-
-	__show_smap(m, &mss, true);
-
-	release_task_mempolicy(priv);
-	up_read(&mm->mmap_sem);
-	mmput(mm);
-
-out_put_task:
-	put_task_struct(priv->task);
-	priv->task = NULL;
-
 	return ret;
 }
 #undef SEQ_PUT_DEC
@@ -1054,18 +1010,6 @@ out_free:
 	return ret;
 }
 
-static int smaps_rollup_release(struct inode *inode, struct file *file)
-{
-	struct seq_file *seq = file->private_data;
-	struct proc_maps_private *priv = seq->private;
-
-	if (priv->mm)
-		mmdrop(priv->mm);
-
-	kfree(priv);
-	return single_release(inode, file);
-}
-
 const struct file_operations proc_pid_smaps_operations = {
 	.open		= pid_smaps_open,
 	.read		= seq_read,
@@ -1074,10 +1018,10 @@ const struct file_operations proc_pid_smaps_operations = {
 };
 
 const struct file_operations proc_pid_smaps_rollup_operations = {
-	.open		= smaps_rollup_open,
+	.open		= pid_smaps_rollup_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
-	.release	= smaps_rollup_release,
+	.release	= proc_map_release,
 };
 
 #if defined(OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY) && defined(CONFIG_VIRTUAL_RESERVE_MEMORY)
