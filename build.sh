@@ -5,7 +5,7 @@ KERNEL_NAME="HyperFusionX"
 DEVICE="RMX2061"
 VARIANT="Nova"
 BUILD_TYPE="Stable"
-VERSION_NUMBER="v1.0.5"
+VERSION_NUMBER="v1.0.6"
 
 DATE=$(date +%Y%m%d)
 TIME=$(date +%H%M)
