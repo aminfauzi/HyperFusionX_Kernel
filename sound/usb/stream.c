@@ -284,6 +284,8 @@ static struct snd_pcm_chmap_elem *convert_chmap(int channels, unsigned int bits,
 		0 /* terminator */
 	};
 	struct snd_pcm_chmap_elem *chmap;
+	const unsigned int *maps;
+	int c;
 
 	if (channels > ARRAY_SIZE(chmap->map))
 		return NULL;
@@ -292,8 +294,10 @@ static struct snd_pcm_chmap_elem *convert_chmap(int channels, unsigned int bits,
 	if (!chmap)
 		return NULL;
 
+	maps = (protocol == UAC_VERSION_2 ? uac2_maps : uac1_maps);
 	chmap->channels = channels;
 
+	c = 0;
 	if (bits) {
 		for (; bits && *maps; maps++, bits >>= 1) {
 			if (bits & 1)
@@ -302,15 +306,6 @@ static struct snd_pcm_chmap_elem *convert_chmap(int channels, unsigned int bits,
 				break;
 		}
 	} else {
-		int c = 0;
-		const unsigned int *maps =
-			protocol == UAC_VERSION_2 ? uac2_maps : uac1_maps;
-
-		if (bits) {
-			for (; bits && *maps; maps++, bits >>= 1)
-				if (bits & 1)
-					chmap->map[c++] = *maps;
-		} else {
 			/*
 			 * If we're missing wChannelConfig, then guess something
 			 * to make sure the channel map is not skipped entirely
@@ -321,9 +316,9 @@ static struct snd_pcm_chmap_elem *convert_chmap(int channels, unsigned int bits,
 				for (; c < channels && *maps; maps++)
 					chmap->map[c++] = *maps;
 		}
+
 		for (; c < channels; c++)
 			chmap->map[c] = SNDRV_CHMAP_UNKNOWN;
-	}
 
 	return chmap;
 }
