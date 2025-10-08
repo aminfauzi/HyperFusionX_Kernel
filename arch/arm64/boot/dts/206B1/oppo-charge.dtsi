@@ -387,8 +387,8 @@
 };
 
 &pm6150_charger {
-	qcom,usb-icl-ua = <2000000>;
-	qcom,fcc-max-ua = <2000000>;
+	qcom,usb-icl-ua = <2500000>;
+	qcom,fcc-max-ua = <2500000>;
 	//qcom,fv-max-uv = <4373000>;
 	qcom,qc3-disable;
 	qcom,hvdcp-disable;
@@ -398,9 +398,9 @@
 	qcom,float-option = <1>;
 
 	//for oplus chg framework:
-	qcom,input_current_charger_ma = <2000>;
-	qcom,pd_input_current_charger_ma = <2000>;
-	qcom,qc_input_current_charger_ma = <2000>;
+	qcom,input_current_charger_ma = <2500>;
+	qcom,pd_input_current_charger_ma = <2500>;
+	qcom,qc_input_current_charger_ma = <2500>;
 
 	qcom,input_current_usb_ma = <500>;
 	qcom,input_current_cdp_ma = <1500>;
