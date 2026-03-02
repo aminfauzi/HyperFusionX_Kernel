@@ -103,7 +103,7 @@ make -j$(nproc) O=$OUT_DIR \
   LLVM_IAS=1 \
   CLANG_TRIPLE=$CLANG_TRIPLE \
   CROSS_COMPILE=$CROSS_COMPILE \
-  2>&1 | tee out/build.log | grep --line-buffered -E "warning:|error:" | sed \
+  2>&1 | tee $OUT_DIR/full_build.log | grep --line-buffered -E "warning:|error:" | sed \
   -e 's/warning:/\x1b[1;33mwarning:\x1b[0m/g' \
   -e 's/error:/\x1b[1;31merror:\x1b[0m/g'
 
