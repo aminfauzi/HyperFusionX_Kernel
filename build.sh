@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 # ============================================================
 # Pre-build checks for required toolchains and AnyKernel3
 # ============================================================
