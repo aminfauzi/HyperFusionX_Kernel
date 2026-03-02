@@ -73,7 +73,7 @@ export CROSS_COMPILE=aarch64-linux-
 echo -e "\n🛠️  \033[1;34mStarting Kernel Build: $BASE_ZIPNAME\033[0m"
 
 echo -e "\n🧹 \033[1;33mCleaning output and ccache...\033[0m"
-rm -rf $OUT_DIR/*
+make O=$OUT_DIR mrproper
 rm -f "$ANYKERNEL_DIR/zImage"
 ccache -C > /dev/null 2>&1
 
