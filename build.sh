@@ -98,13 +98,8 @@ fi
 echo -e "\n🚀 \033[1;35mStarting compilation...\033[0m"
 make -j$(nproc) O=$OUT_DIR \
   ARCH=arm64 \
-  CC=clang \
-  LD=ld.lld \
-  AR=llvm-ar \
-  NM=llvm-nm \
-  OBJCOPY=llvm-objcopy \
-  OBJDUMP=llvm-objdump \
-  STRIP=llvm-strip \
+  LLVM=1 \
+  LLVM_IAS=1 \
   CLANG_TRIPLE=$CLANG_TRIPLE \
   CROSS_COMPILE=$CROSS_COMPILE \
   2>&1 | tee out/build.log | grep --line-buffered -E "warning:|error:" | sed \
