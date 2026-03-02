@@ -70,6 +70,7 @@ export CROSS_COMPILE=aarch64-linux-
 
 # =====================[ START PROCESS ]=====================
 
+BUILD_START=$(date +%s)
 echo -e "\n🛠️  \033[1;34mStarting Kernel Build: $BASE_ZIPNAME\033[0m"
 
 echo -e "\n🧹 \033[1;33mCleaning output and ccache...\033[0m"
@@ -130,6 +131,11 @@ else
   echo -e "\n❌ \033[1;31mFailed to create zip.\033[0m"
   exit 1
 fi
+
+BUILD_END=$(date +%s)
+DIFF=$((BUILD_END - BUILD_START))
+
+echo -e "\n⏱️  Build completed in $((DIFF / 60))m $((DIFF % 60))s"
 
 # =====================[ TELEGRAM UPLOAD ]=====================
 
