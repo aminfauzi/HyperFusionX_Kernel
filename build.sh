@@ -97,7 +97,8 @@ fi
 # =====================[ COMPILING ]=====================
 
 echo -e "\n🚀 \033[1;35mStarting compilation...\033[0m"
-make -j$(nproc) O=$OUT_DIR \
+JOBS=$(( $(nproc) - 1 ))
+make -j$JOBS O=$OUT_DIR \
   ARCH=arm64 \
   LLVM=1 \
   LLVM_IAS=1 \
