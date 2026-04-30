@@ -47,7 +47,7 @@ fi
 KERNEL_NAME="HyperFusionX"
 DEVICE="RMX2061"
 VARIANT="Ultra"
-VERSION_NUMBER="v1.0"
+VERSION_NUMBER="v2.0"
 
 DATE=$(date +%Y%m%d)
 TIME=$(date +%H%M)
