@@ -7,9 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Branch to build"
+        description: "Select the branch to build"
         required: true
         default: "main"
+        type: choice
+        options:
+          - main
+          - nova
+          - ultra-ksu
+          - ultra
 
 jobs:
   build:
@@ -19,7 +25,7 @@ jobs:
       - name: 📥 Checkout Source
         uses: actions/checkout@v4
         with:
-           ref: ${{ github.event.inputs.branch }}
+          ref: ${{ github.event.inputs.branch || 'main' }}
 
       - name: 🧰 Install Dependencies
         run: |
@@ -27,7 +33,13 @@ jobs:
           sudo apt install -y \
             git curl zip bc bison flex \
             libssl-dev libelf-dev \
-            ccache build-essential
+            ccache build-essential libncurses5-dev
+
+      - name: 🧹 Fix Workspace Permissions
+        run: |
+          sudo chown -R runner:runner $GITHUB_WORKSPACE
+          mkdir -p $GITHUB_WORKSPACE/out
+          chmod 755 $GITHUB_WORKSPACE/out
 
       - name: 🛠 Make Build Script Executable
         run: chmod +x build.sh
@@ -42,4 +54,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HyperFusionX-Kernel
-          path: ~/AnyKernel3/*.zip
+          path: /home/runner/AnyKernel3/*.zip
