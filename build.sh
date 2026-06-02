@@ -8,9 +8,9 @@ set -o pipefail
 # ============================================================
 
 # Paths
-CLANG_DIR=~/toolchains/clang
-GCC_DIR=~/toolchains/gcc-aarch64-linux-gnu-9.3
-ANYKERNEL_DIR=~/AnyKernel3
+CLANG_DIR="$HOME/toolchains/clang"
+GCC_DIR="$HOME/toolchains/gcc-aarch64-linux-gnu-9.3"
+ANYKERNEL_DIR="$HOME/AnyKernel3"
 
 # Check Clang
 if [ ! -d "$CLANG_DIR" ]; then
@@ -63,7 +63,11 @@ export KERNEL_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export CLANG_PATH=$CLANG_DIR
 export GCC_PATH=$GCC_DIR
 export ANYKERNEL_DIR=$ANYKERNEL_DIR
-export OUT_DIR=out
+export OUT_DIR="$KERNEL_ROOT/out"
+
+rm -rf "$OUT_DIR"
+mkdir -p "$OUT_DIR"
+chmod 755 "$OUT_DIR"
 
 export PATH=$CLANG_PATH/bin:$GCC_PATH/bin:$PATH
 export ARCH=arm64
@@ -76,7 +80,7 @@ BUILD_START=$(date +%s)
 echo -e "\n🛠️  \033[1;34mStarting Kernel Build: $BASE_ZIPNAME\033[0m"
 
 echo -e "\n🧹 \033[1;33mCleaning output and ccache...\033[0m"
-make O=$OUT_DIR mrproper
+make O=$OUT_DIR ARCH=arm64 LLVM=1 LLVM_IAS=1 CLANG_TRIPLE=$CLANG_TRIPLE CROSS_COMPILE=$CROSS_COMPILE mrproper
 rm -f "$ANYKERNEL_DIR/zImage"
 ccache -C > /dev/null 2>&1
 
@@ -90,11 +94,6 @@ echo -e "\n📱 \033[1;32mTarget Device: $DEVICE\033[0m"
 
 echo -e "\n📄 \033[1;36mSetting up defconfig...\033[0m"
 make O=$OUT_DIR ARCH=arm64 atoll_defconfig
-
-if [ $? -ne 0 ]; then
-  echo -e "\n❌ \033[1;31mDefconfig failed. Exiting.\033[0m"
-  exit 1
-fi
 
 # =====================[ COMPILING ]=====================
 
