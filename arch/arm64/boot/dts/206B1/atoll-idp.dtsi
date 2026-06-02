@@ -348,6 +348,7 @@
 //#endif
 			   "vph_voltage";
 	qcom,battery-data = <&mtp_batterydata>;
+    oplus,pps-usbpd-phandle = <&pm6150_pdphy>;
 //#ifndef VENDOR_EDIT
 /* lizhijie@BSP.CHG.Basic 2020/02/25  for charger */
 //	qcom,auto-recharge-soc = <98>;
