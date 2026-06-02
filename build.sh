@@ -80,7 +80,6 @@ BUILD_START=$(date +%s)
 echo -e "\n🛠️  \033[1;34mStarting Kernel Build: $BASE_ZIPNAME\033[0m"
 
 echo -e "\n🧹 \033[1;33mCleaning output and ccache...\033[0m"
-make O=$OUT_DIR ARCH=arm64 LLVM=1 LLVM_IAS=1 CLANG_TRIPLE=$CLANG_TRIPLE CROSS_COMPILE=$CROSS_COMPILE mrproper
 rm -f "$ANYKERNEL_DIR/zImage"
 ccache -C > /dev/null 2>&1
 
