@@ -176,7 +176,7 @@ ifdef CONFIG_OPPO_KEVENT_UPLOAD
 endif
 #endif /* OPLUS_ARCH_EXTENDS */
 
-LINUX_INC +=	-Iinclude/linux
+LINUX_INC +=	-I$(srctree)/include/linux
 
 INCS +=		$(COMMON_INC) \
 		$(UAPI_INC)
