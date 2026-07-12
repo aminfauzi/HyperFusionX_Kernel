@@ -181,6 +181,9 @@ static int wlan_cfg80211_mc_cp_stats_send_wake_lock_stats(struct wiphy *wiphy,
 			QCA_WLAN_VENDOR_ATTR_ICMP6_RX_MULTICAST_CNT,
 			ipv6_rx_multicast_addr_cnt) ||
 	    nla_put_u32(skb,
+			QCA_WLAN_VENDOR_ATTR_OTHER_RX_MULTICAST_CNT,
+			0) ||
+	    nla_put_u32(skb,
 			QCA_WLAN_VENDOR_ATTR_RSSI_BREACH_CNT,
 			stats->rssi_breach_wake_up_count) ||
 	    nla_put_u32(skb,
