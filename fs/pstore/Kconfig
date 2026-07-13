@@ -19,6 +19,12 @@ choice
         help
           This option chooses compression algorithm.
 
+config PSTORE_NO_COMPRESS
+        bool "None"
+        help
+          Store panic logs without compression. This uses more persistent RAM
+          but leaves a readable record if a reboot interrupts compression.
+
 config PSTORE_ZLIB_COMPRESS
         bool "ZLIB"
         select ZLIB_DEFLATE
