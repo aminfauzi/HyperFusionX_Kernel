@@ -463,6 +463,7 @@ static const struct nla_policy nl80211_policy[NUM_NL80211_ATTR] = {
 	[NL80211_ATTR_EXTERNAL_AUTH_SUPPORT] = { .type = NLA_FLAG },
 	[NL80211_ATTR_HE_CAPABILITY] = { .type = NLA_BINARY,
 					 .len = NL80211_HE_MAX_CAPABILITY_LEN },
+	[NL80211_ATTR_MAX_NUM_AKM_SUITES] = { .type = NLA_U16 },
 };
 
 /* policy for the key attributes */
@@ -1628,7 +1629,9 @@ static int nl80211_send_wiphy(struct cfg80211_registered_device *rdev,
 		    nla_put_u32(msg, NL80211_ATTR_MAX_SCAN_PLAN_INTERVAL,
 				rdev->wiphy.max_sched_scan_plan_interval) ||
 		    nla_put_u32(msg, NL80211_ATTR_MAX_SCAN_PLAN_ITERATIONS,
-				rdev->wiphy.max_sched_scan_plan_iterations))
+				rdev->wiphy.max_sched_scan_plan_iterations) ||
+		    nla_put_u16(msg, NL80211_ATTR_MAX_NUM_AKM_SUITES,
+				NL80211_MAX_NR_AKM_SUITES))
 			goto nla_put_failure;
 
 		if ((rdev->wiphy.flags & WIPHY_FLAG_IBSS_RSN) &&
