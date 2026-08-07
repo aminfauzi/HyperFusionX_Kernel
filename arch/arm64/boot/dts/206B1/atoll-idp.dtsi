@@ -30,6 +30,7 @@
 	mtp_batterydata: qcom,battery-data {
 		qcom,batt-id-range-pct = <15>;
 		#include "qg-batterydata-alium-3600mah.dtsi"
+		#include "qg-batterydata-4500mAH-averaged-MasterSlave.dtsi"
 	};
 	//#ifdef VENDOR_EDIT
 	/*yajie.chen @BSP.sensor, 2020/04/03, Add for sensor dts*/
@@ -433,6 +434,7 @@
 	oplus_fp_common {
 		compatible = "oplus,fp_common";
 		oplus,fp_gpio_num = <1>; /* the gpio number of fingerprint id used */
+		oplus,fp_gpio_0 = <&tlmm 54 0x0>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio_id2_default>;
 		goodix_optical_G3 {

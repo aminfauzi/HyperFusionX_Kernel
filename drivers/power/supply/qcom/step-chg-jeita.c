@@ -766,7 +766,7 @@ static void status_change_work(struct work_struct *work)
 	int rc = 0;
 	union power_supply_propval prop = {0, };
 
-	pr_err("step_chg_count = %d\n",chip->step_chg_count);
+	pr_debug("step_chg_count = %d\n",chip->step_chg_count);
 	if (!is_batt_available(chip) || !is_bms_available(chip))
 		goto exit_work;
 #ifdef OPLUS_FEATURE_CHG_BASIC
@@ -802,7 +802,7 @@ static void status_change_work(struct work_struct *work)
 exit_work:
 	__pm_relax(chip->step_chg_ws);
 	chip->step_chg_count--;
-	pr_err("step_chg_count = %d\n",chip->step_chg_count);
+	pr_debug("step_chg_count = %d\n",chip->step_chg_count);
 }
 
 static int step_chg_notifier_call(struct notifier_block *nb,
@@ -818,7 +818,7 @@ static int step_chg_notifier_call(struct notifier_block *nb,
 			|| (strcmp(psy->desc->name, "usb") == 0)) {
 		__pm_stay_awake(chip->step_chg_ws);
 		chip->step_chg_count++;
-		pr_err("step_chg_count = %d\n",chip->step_chg_count);
+		pr_debug("step_chg_count = %d\n",chip->step_chg_count);
 		schedule_delayed_work(&chip->status_change_work, 0);
 	}
 

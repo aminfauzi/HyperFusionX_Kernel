@@ -13557,11 +13557,18 @@ static int smb5_batt_get_prop(struct power_supply *psy,
 		break;
 
 	case POWER_SUPPLY_PROP_CHARGE_FULL:
-		rc = smblib_get_prop_from_bms(chg,
-				POWER_SUPPLY_PROP_CHARGE_FULL, val);
+#ifdef VENDOR_EDIT
+		/* Use OPLUS gauge FCC as CHARGE_FULL (current full charge capacity) */
 		if (g_oplus_chip) {
 			val->intval = g_oplus_chip->batt_fcc * 1000;
+		} else {
+			rc = smblib_get_prop_from_bms(chg,
+					POWER_SUPPLY_PROP_CHARGE_FULL, val);
 		}
+#else
+		rc = smblib_get_prop_from_bms(chg,
+				POWER_SUPPLY_PROP_CHARGE_FULL, val);
+#endif
 		break;
 
 	case POWER_SUPPLY_PROP_FORCE_RECHARGE:
@@ -13585,6 +13592,7 @@ static int smb5_batt_get_prop(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
 		if (g_oplus_chip) {
+			/* Use design capacity from DTS (batt_capacity_mah), not current FCC */
 			val->intval = g_oplus_chip->batt_capacity_mah * 1000;
 		}
 		break;
@@ -17365,12 +17373,13 @@ static bool oplus_check_pdphy_ready(void){
 }
 #define OPPO_SVID 0x22D9
 static void register_oplus_pdsvooc_svid(struct work_struct *work) {
+        int rc = 0;
 	struct oplus_chg_chip *chip = g_oplus_chip;
+	const char *pd_phandle = "qcom,oplus-pps-usbpd-detection";
 	struct smb_charger *chg;
-	struct usbpd *pd;
-	int rc;
+	struct usbpd *pd = NULL;
 
-	if (!chip || !chip->pmic_spmi.smb5_chip)
+	if(g_oplus_chip == NULL){
 		return;
 	chg = &chip->pmic_spmi.smb5_chip->chg;
 	if (!chg->dev)
@@ -17380,17 +17389,30 @@ static void register_oplus_pdsvooc_svid(struct work_struct *work) {
 				     "qcom,oplus-pps-usbpd-detection");
 	if (!pd)
 		return;
+	}
+	pd = devm_usbpd_get_by_phandle(chg->dev, pd_phandle);
+	if (pd == NULL) {
+		return;
+	}
 	if (IS_ERR(pd)) {
 		rc = PTR_ERR(pd);
 		chg->oplus_pd = NULL;
-		/* Retry while the controller is being registered/probed. */
-		if (rc == -EAGAIN || rc == -ENODEV || rc == -EPROBE_DEFER)
-			schedule_delayed_work(&chg->regist_pd,
-					      msecs_to_jiffies(1000));
-		else if (rc != -ENXIO)
-			chg_err("oplus pps usbpd lookup failed (%d)\n", rc);
-		/* -ENXIO: this board has no optional PPS detection phandle. */
-		return;
+		if (rc == -EPROBE_DEFER) {
+			schedule_delayed_work(&chg->regist_pd, msecs_to_jiffies(1000));
+		}
+	} else {
+		chg->oplus_pd = pd;
+		chg->oplus_svid_handler.svid = OPPO_SVID;
+		chg->oplus_svid_handler.vdm_received = NULL;
+		chg->oplus_svid_handler.connect = oplus_usbpd_connect_cb;
+		chg->oplus_svid_handler.svdm_received = oplus_usbpd_response_cb;
+		chg->oplus_svid_handler.disconnect = oplus_usbpd_disconnect_cb;
+		rc = usbpd_register_svid(chg->oplus_pd, &chg->oplus_svid_handler);
+		if (rc){
+			chg_err("pps pd registration failed\n");
+		} else {
+			chg_debug("pps pd registration success\n");
+		}
 	}
 
 	chg->oplus_pd = pd;
