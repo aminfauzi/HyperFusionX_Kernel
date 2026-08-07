@@ -61,12 +61,14 @@ int cam_context_shutdown(struct cam_context *ctx)
 		rc = -EINVAL;
 	}
 
-	rc = cam_destroy_device_hdl(ctx->dev_hdl);
-	if (rc)
-		CAM_ERR(CAM_CORE, "destroy device hdl failed for node %s",
-			ctx->dev_name);
-	else
-		ctx->dev_hdl = -1;
+	if (ctx->dev_hdl > 0) {
+		rc = cam_destroy_device_hdl(ctx->dev_hdl);
+		if (rc)
+			CAM_ERR(CAM_CORE, "destroy device hdl failed for node %s",
+				ctx->dev_name);
+		else
+			ctx->dev_hdl = -1;
+	}
 
 	return rc;
 }
