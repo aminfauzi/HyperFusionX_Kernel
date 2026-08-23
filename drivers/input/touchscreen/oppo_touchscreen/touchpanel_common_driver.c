@@ -44,6 +44,7 @@
 #if GESTURE_RATE_MODE
 #include "gesture_recon_rate.h"
 #endif
+
 /*******Part0:LOG TAG Declear************************/
 #define TPD_PRINT_POINT_NUM 150
 #define TPD_DEVICE "touchpanel"
@@ -6752,6 +6753,29 @@ NO_NEED_SUSPEND:
 
     return 0;
 }
+
+/*
+ * AOD changes the panel to LP1/LP2 after the normal DRM unblank callback has
+ * already run.  Re-enter the suspended gesture configuration at that exact
+ * transition instead of relying on tp_resume() to observe the doze state.
+ */
+void touchpanel_enter_aod(void)
+{
+    struct touchpanel_data *ts = g_tp;
+
+    if (!ts || !ts->black_gesture_support || !(ts->gesture_enable & 0x01))
+        return;
+
+    if (ts->is_suspended) {
+        mutex_lock(&ts->mutex);
+        operate_mode_switch(ts);
+        mutex_unlock(&ts->mutex);
+        return;
+    }
+
+    tp_suspend(ts->dev);
+}
+EXPORT_SYMBOL(touchpanel_enter_aod);
 
 /**
  * touchpanel_ts_suspend - touchpanel resume function
