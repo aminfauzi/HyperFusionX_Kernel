@@ -780,7 +780,21 @@ int oplus_battery_get_property(struct power_supply *psy,
 			val->intval = oplus_vooc_get_adapter_update_status();
 			break;
 		case POWER_SUPPLY_PROP_VOOCCHG_ING:
-			val->intval = oplus_vooc_get_fastchg_ing();
+			/*
+			 * Report VOOC/SuperDart fast charging as active for the
+			 * whole charge session, i.e. until the battery is actually
+			 * full (prop_status == POWER_SUPPLY_STATUS_FULL).
+			 *
+			 * The Dart adapter switches to normal/CV charging around
+			 * 85% (fastchg_to_normal / VOOC_NOTIFY_NORMAL_TEMP_FULL),
+			 * which clears fastchg_ing and previously made the
+			 * framework's voocchg_ing node drop to 0, so the lockscreen
+			 * stopped showing "SuperDart Charging" well before 100%.
+			 * oplus_chg_show_vooc_logo_ornot() already covers that tail
+			 * (to_normal / to_warm / dummy_started / adapter update)
+			 * and only turns off once the battery reaches FULL.
+			 */
+			val->intval = oplus_chg_show_vooc_logo_ornot();
 #ifndef WPC_NEW_INTERFACE
 			if (!val->intval && chip->wireless_support) {
 				val->intval = oplus_wpc_get_fast_charging();
