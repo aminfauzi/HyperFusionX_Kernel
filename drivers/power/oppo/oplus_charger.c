@@ -5220,8 +5220,8 @@ static void oplus_chg_variables_init(struct oplus_chg_chip *chip)
 		//chip->chg_ops->charger_suspend();
 		chip->chg_ops->charging_disable();
 	}
-	chip->otg_switch = false;
-	chip->ui_otg_switch = false;
+	chip->otg_switch = true;
+	chip->ui_otg_switch = true;
 	chip->boot_mode = chip->chg_ops->get_boot_mode();
 	chip->boot_reason = chip->chg_ops->get_boot_reason();
 	chip->anti_shake_bound.cold_bound = chip->limits.cold_bat_decidegc;
