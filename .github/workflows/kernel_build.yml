@@ -16,6 +16,7 @@ on:
           - nova
           - ultra-ksu
           - ultra
+          - zenith-ksu
 
 jobs:
   build:
