@@ -140,23 +140,54 @@ echo -e "\n⏱️  Build completed in $((DIFF / 60))m $((DIFF % 60))s"
 
 # =====================[ TELEGRAM UPLOAD ]=====================
 
-if [ -n "$TELEGRAM_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
-  echo -e "\n📤 \033[1;36mUploading zip to Telegram...\033[0m"
+if [[ -n "$TELEGRAM_TOKEN" && -n "$TELEGRAM_CHAT_ID" ]]; then
+FILE="$ANYKERNEL_DIR/$ZIPNAME"
 
-  curl -s -F document=@"$ANYKERNEL_DIR/$ZIPNAME" \
-       -F chat_id="$TELEGRAM_CHAT_ID" \
-       -F caption="✅ <b>Kernel Build Success</b>
+echo -e "\n📤 \033[1;36mUploading zip to Telegram...\033[0m"
+
+if [[ ! -f "$FILE" ]]; then
+    echo -e "\n❌ \033[1;31mZIP file not found: $FILE\033[0m"
+else
+    echo "📦 File: $ZIPNAME"
+    echo "📏 Size: $(du -h "$FILE" | cut -f1)"
+
+    CAPTION="✅ <b>Kernel Build Success</b>
+
 📦 <code>$ZIPNAME</code>
 📱 <code>$DEVICE</code>
-🕐 <code>$(date)</code>" \
-       -F parse_mode="HTML" \
-       "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" > /dev/null
+🕐 <code>$(date '+%Y-%m-%d %H:%M:%S')</code>"
 
-  if [ $? -eq 0 ]; then
-    echo -e "\n✅ \033[1;32mUploaded to Telegram successfully!\033[0m"
-  else
-    echo -e "\n❌ \033[1;31mTelegram upload failed.\033[0m"
-  fi
+    echo "📡 Connecting to Telegram API..."
+
+    # Keep curl inside an if condition so set -e does not
+    # terminate the script before the error can be reported.
+    if RESPONSE=$(curl --http1.1 -sS \
+        --connect-timeout 20 \
+        --max-time 900 \
+        --expect100-timeout 10 \
+        -X POST \
+        "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument" \
+        -F "chat_id=${TELEGRAM_CHAT_ID}" \
+        -F "document=@${FILE}" \
+        -F "caption=${CAPTION}" \
+        -F "parse_mode=HTML" 2>&1); then
+        CURL_STATUS=0
+    else
+        CURL_STATUS=$?
+    fi
+
+    if [[ "$CURL_STATUS" -ne 0 ]]; then
+        echo -e "\n❌ \033[1;31mTelegram upload failed (curl exit code $CURL_STATUS).\033[0m"
+        echo "Response / error:"
+        echo "$RESPONSE"
+    elif echo "$RESPONSE" | grep -q '"ok":true'; then
+        echo -e "\n✅ \033[1;32mKernel ZIP uploaded successfully!\033[0m"
+        echo "📦 $ZIPNAME"
+    else
+        echo -e "\n❌ \033[1;31mTelegram API rejected the upload.\033[0m"
+        echo "$RESPONSE"
+    fi
+fi
 else
-  echo -e "\n⚠️  \033[1;33mSkipping Telegram upload — credentials not set.\033[0m"
+    echo -e "\n⚠️ Telegram credentials missing. Skipping upload."
 fi
