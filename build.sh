@@ -33,7 +33,7 @@ fi
 # Check AnyKernel3
 if [ ! -d "$ANYKERNEL_DIR" ]; then
   echo -e "\n🔍 \033[1;33mAnyKernel3 not found. Cloning...\033[0m"
-  git clone --depth=1 --branch HyperFusionX-Ultra \
+  git clone --depth=1 --branch HyperFusionX \
     https://github.com/aminfauzi/AnyKernel3.git "$ANYKERNEL_DIR"
 else
   echo -e "\n✅ \033[1;32mAnyKernel3 folder already present.\033[0m"
