@@ -46,7 +46,7 @@ fi
 # Kernel build configuration
 KERNEL_NAME="HyperFusionX"
 DEVICE="RMX2061"
-VARIANT="Zenith"
+VARIANT="Zenith-KSUN"
 VERSION_NUMBER="v1.0"
 
 DATE=$(date +%Y%m%d)
