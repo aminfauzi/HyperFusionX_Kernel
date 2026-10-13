@@ -1,4 +1,4 @@
-name: HyperFusionX - Ultra (KSUN) Kernel Build
+name: HyperFusionX Kernel Build
 
 on:
   push:
