@@ -722,6 +722,7 @@ extern int oppo_dimlayer_bl_alpha_v2;
 // Yuwei.Zhang@MULTIMEDIA.DISPLAY.LCD, 2020/09/25, sepolicy for aod ramless
 extern int oppo_display_mode;
 extern int oppo_display_update_aod_area_unlock(void);
+extern int oppo_display_get_hbm_mode(void);
 #endif /* OPLUS_FEATURE_AOD_RAMLESS */
 
 #ifndef OPLUS_BUG_STABILITY
@@ -4626,6 +4627,18 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 	if (rc)
 		pr_err("[%s] failed to send DSI_CMD_SET_NOLP cmd, rc=%d\n",
 		       panel->name, rc);
+
+	if (oppo_display_get_hbm_mode() > 1 && oppo_display_get_hbm_mode() <= 10) {
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_NORMAL_HBM_ON);
+		if (rc)
+			pr_err("[%s] failed to send DSI_CMD_NORMAL_HBM_ON cmds, rc=%d\n",
+			       panel->name, rc);
+	} else if (oppo_display_get_hbm_mode() == 1) {
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_HBM_ON);
+		if (rc)
+			pr_err("[%s] failed to send DSI_CMD_HBM_ON cmds, rc=%d\n",
+			       panel->name, rc);
+	}
 
 #ifdef OPLUS_BUG_STABILITY
 /* Sachin Shukla@PSW.MM.Display.LCD.Stability,2018/11/21

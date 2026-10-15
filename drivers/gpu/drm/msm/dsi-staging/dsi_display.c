@@ -68,6 +68,7 @@ extern int lcd_closebl_flag;
 extern int lcd_closebl_flag_fp;
 /* Add for ffl feature */
 extern bool oppo_ffl_trigger_finish;
+extern int oppo_display_get_hbm_mode(void);
 /* Add for first osc clk setting*/
 extern int osc_count;
 #endif /* OPLUS_BUG_STABILITY */
@@ -272,6 +273,20 @@ int dsi_display_set_backlight(struct drm_connector *connector,
 		}
 
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_POST_ON_BACKLIGHT);
+
+		if (oppo_display_get_hbm_mode() > 1 && oppo_display_get_hbm_mode() <= 10) {
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_NORMAL_HBM_ON);
+			if (rc) {
+				pr_err("[%s] failed to send DSI_CMD_NORMAL_HBM_ON cmds, rc=%d\n",
+				       panel->name, rc);
+			}
+		} else if (oppo_display_get_hbm_mode() == 1) {
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_HBM_ON);
+			if (rc) {
+				pr_err("[%s] failed to send DSI_CMD_HBM_ON cmds, rc=%d\n",
+				       panel->name, rc);
+			}
+		}
 
 		rc = dsi_display_clk_ctrl(dsi_display->dsi_clk_handle,
 			DSI_CORE_CLK, DSI_CLK_OFF);
