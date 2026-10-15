@@ -1779,8 +1779,13 @@ bool oplus_vooc_get_fastchg_ing(void)
 	}
 }
 
+extern bool qcom_is_restricted_charging_enabled(void);
+
 bool oplus_vooc_get_fastchg_allow(void)
 {
+	if (qcom_is_restricted_charging_enabled())
+		return false;
+
 	if (!g_vooc_chip) {
 		return false;
 	} else {

@@ -520,6 +520,17 @@ static struct class_attribute class_attr_slave_pct =
 /************************
  * RESTRICTED CHARGIGNG *
  ************************/
+extern bool oplus_vooc_get_fastchg_started(void);
+extern bool oplus_vooc_get_fastchg_dummy_started(void);
+extern void oplus_vooc_turn_off_fastchg(void);
+extern bool oplus_chg_wake_update_work(void);
+
+bool qcom_is_restricted_charging_enabled(void)
+{
+	return the_chip ? !!the_chip->restricted_charging_enabled : false;
+}
+EXPORT_SYMBOL(qcom_is_restricted_charging_enabled);
+
 static ssize_t restrict_chg_show(struct class *c, struct class_attribute *attr,
 		char *ubuf)
 {
@@ -552,6 +563,14 @@ static ssize_t restrict_chg_store(struct class *c, struct class_attribute *attr,
 	vote(chip->fcc_votable, RESTRICT_CHG_VOTER,
 				chip->restricted_charging_enabled,
 				chip->restricted_current);
+
+	if (chip->restricted_charging_enabled) {
+		if (oplus_vooc_get_fastchg_started() || oplus_vooc_get_fastchg_dummy_started()) {
+			oplus_vooc_turn_off_fastchg();
+		}
+	} else {
+		oplus_chg_wake_update_work();
+	}
 
 no_change:
 	return count;

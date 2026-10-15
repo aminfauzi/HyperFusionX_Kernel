@@ -1043,11 +1043,18 @@ static void oplus_vooc_delay_reset_mcu(struct oplus_vooc_chip *chip)
 		round_jiffies_relative(msecs_to_jiffies(1500)));
 }
 
+extern bool qcom_is_restricted_charging_enabled(void);
+
 bool is_allow_fast_chg_real(struct oplus_vooc_chip *chip)
 {
 	int temp = 0;
 	int cap = 0;
 	int chg_type = 0;
+
+	if (qcom_is_restricted_charging_enabled()) {
+		chg_err("fast charge restricted, disallow vooc\n");
+		return false;
+	}
 
 	temp = oplus_chg_get_chg_temperature();
 	cap = oplus_chg_get_ui_soc();

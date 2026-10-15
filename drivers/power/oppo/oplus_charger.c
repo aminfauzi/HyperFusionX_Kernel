@@ -7653,8 +7653,14 @@ int oplus_is_vooc_project(void)
 	}
 }
 
+extern bool qcom_is_restricted_charging_enabled(void);
+
 int oplus_chg_show_vooc_logo_ornot(void)
 {
+	if (qcom_is_restricted_charging_enabled()) {
+		return 0;
+	}
+
 	if (!g_charger_chip) {
 		return 0;
 	}

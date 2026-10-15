@@ -24,4 +24,5 @@ struct charger_param {
 
 int qcom_batt_init(struct charger_param *param);
 void qcom_batt_deinit(void);
+bool qcom_is_restricted_charging_enabled(void);
 #endif /* __BATTERY_H */
