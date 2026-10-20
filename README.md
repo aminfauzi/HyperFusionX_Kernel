@@ -10,8 +10,8 @@
 
 | Category | Highlights |
 | :--- | :--- |
-| **⚙️ Core** | • **NOVA**: Based on Linux 4.14.336 • Official realme-sm7125 source<br>• **ULTRA**: Based on Linux 4.14.357 • Additional upstream patches |
-| **🧬 Compatibility** | Android 13, 14, 15 & 16 (AOSP & ROMs) |
+| **⚙️ Core** | • **NOVA**: Based on Linux 4.14.336 • Official realme-sm7125 source<br>• **ULTRA**: Based on Linux 4.14.357 • Additional upstream patches<br>• **ZENITH**: Based on Linux 4.14.357 • Support for Android 17 with tweaks |
+| **🧬 Compatibility** | Android 13, 14, 15, 16 & 17 (AOSP & ROMs) |
 | **🎯 Performance** | Optimized CPU/GPU scheduling • Reduced overhead • Smoother UI |
 | **🔋 Battery** | Intelligent power management • Aggressive doze modes • Efficient frequency scaling |
 | **❄️ Thermal** | Enhanced thermal control for sustained performance |
