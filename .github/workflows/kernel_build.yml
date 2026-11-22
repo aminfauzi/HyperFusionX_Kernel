@@ -17,6 +17,7 @@ on:
           - ultra-ksu
           - ultra
           - zenith-ksu
+          - zenith
 
 jobs:
   build:
